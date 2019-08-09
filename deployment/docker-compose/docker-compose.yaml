@@ -1,0 +1,59 @@
+version: '2'
+services:
+  openldap:
+    image: osixia/openldap:1.2.4
+    container_name: openldap
+    environment:
+      #LDAP_TLS: 'false'
+      #LDAP_TLS_CRT_FILENAME: 'fullchain.pem'
+      #LDAP_TLS_KEY_FILENAME: 'privkey.pem'
+      #LDAP_TLS_CA_CRT_FILENAME: 'fullchain.pem'
+      LDAP_ORGANISATION: "Example Inc."
+      LDAP_DOMAIN: "example.org"
+      LDAP_BASE_DN: ""
+      LDAP_ADMIN_PASSWORD: "verysecret"
+      LDAP_READONLY_USER: "true"
+      LDAP_READONLY_USER_USERNAME: "readonly"
+      LDAP_READONLY_USER_PASSWORD: "readonly"
+      LDAP_TLS_CIPHER_SUITE: "NORMAL"
+      LDAP_TLS_VERIFY_CLIENT: "allow"
+    tty: true
+    stdin_open: true
+    ports:
+      - "389:389"
+      - "639:639"
+    hostname: "example.org"
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
+      PHPLDAPADMIN_HTTPS=false:
+    ports:
+      - "8080:80"
+    depends_on:
+      - openldap
+
+  authproxy:
+    image: cbrgm/authproxy-ldap:latest
+    container_name: authproxy
+    environment:
+      PROXY_HTTP_ADDR: "0.0.0.0:6660"
+      PROXY_HTTP_PRIVATE_ADDR: "0.0.0.0:6661"
+      PROXY_TLS_CERT: "/certs/server.crt"
+      PROXY_TLS_KEY: "/certs/server.key"
+      PROXY_TLS_CA: "/certs/server.ca"
+      LDAP_HTTP_ADDR: "localhost:389"
+      LDAP_BIND_DN: "cn=readonly,dc=example,dc=org"   # readonly user name
+      LDAP_BIND_PW: "readonly"                        # readonly user pw
+      LDAP_QUERY_DN: "cn=students,dc=example,dc=org"
+      LDAP_ALLOW_INSECURE=true:
+      LDAP_TOKEN_EXPIRATION: "720" # 12 hours
+      PROXY_LOG_JSON=false:
+      PROXY_LOG_LEVEL: "debug"
+    ports:
+      - "6660:6660"
+      - "6661:6661"
+    depends_on:
+      - openldap
