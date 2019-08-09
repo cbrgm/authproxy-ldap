@@ -43,8 +43,8 @@ services:
       PROXY_HTTP_PRIVATE_ADDR: "0.0.0.0:6661"
       PROXY_TLS_CERT: "/certs/server.crt"
       PROXY_TLS_KEY: "/certs/server.key"
-      PROXY_TLS_CA: "/certs/server.ca"
-      LDAP_HTTP_ADDR: "localhost:389"
+      PROXY_TLS_CA: "/certs/ca.crt"
+      LDAP_HTTP_ADDR: "openldap:389"
       LDAP_BIND_DN: "cn=readonly,dc=example,dc=org"   # readonly user name
       LDAP_BIND_PW: "readonly"                        # readonly user pw
       LDAP_QUERY_DN: "cn=students,dc=example,dc=org"
@@ -55,5 +55,7 @@ services:
     ports:
       - "6660:6660"
       - "6661:6661"
+    volumes:
+      - "../../certs:/certs"
     depends_on:
-      - openldap
+      - phpldapadmin

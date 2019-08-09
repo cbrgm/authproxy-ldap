@@ -37,5 +37,5 @@ rm *.old
 rm *.txt*
 rm serial
 rm -rf newcerts
-rm -rf certs
 rm -rf crl
+mv *.key *.crt certs
