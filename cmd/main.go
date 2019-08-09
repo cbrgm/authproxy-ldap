@@ -139,7 +139,7 @@ var (
 			Name:        FlagBindDN,
 			EnvVar:      EnvBindDN,
 			Usage:       "The read-only user to be used for queries",
-			Value:       "authuser",
+			Value:       "cn=readonly,dc=example,dc=org",
 			Destination: &apiConfig.BindDN,
 		},
 		cli.StringFlag{
@@ -153,7 +153,7 @@ var (
 			Name:        FlagQueryDN,
 			EnvVar:      EnvQueryDN,
 			Usage:       "The query dn",
-			Value:       ":7636",
+			Value:       "cn=students,dc=example,dc=org",
 			Destination: &apiConfig.QueryDN,
 		},
 		cli.IntFlag{

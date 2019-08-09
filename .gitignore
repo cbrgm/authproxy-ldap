@@ -4,8 +4,7 @@
 /dist/
 /vendor/
 /cmd/authproxy-ldap
-/ldap/server.crt
-/ldap/server.key
+/certs/*
 
 *coverage.out
 

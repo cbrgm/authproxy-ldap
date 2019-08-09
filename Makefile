@@ -35,7 +35,8 @@ cmd/authproxy-ldap:
 
 .PHONY: container-proxy
 container-proxy: cmd/authproxy-ldap
-    ./cmd/gencerts.sh
 	docker build -t cbrgm/authproxy-ldap:latest ./cmd
-	rm -rf ./cmd/*.key
-	rm -rf ./cmd/*.crt
+
+.PHONY: gencerts
+gencerts:
+	SAN=DNS.1:localhost ./gencerts.sh

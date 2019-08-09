@@ -1,9 +1,12 @@
 FROM alpine
 
+LABEL title="authproxy-ldap docker" \
+    url1="https://cbrgm.net" \
+    twitter="@chrisbargmann" \
+    maintainer="Christian Bargmann" \
+    version="1.0"
+
 COPY ./authproxy-ldap /usr/bin/authproxy-ldap
-COPY ./server.crt /certs
-COPY ./server.key /certs
-COPY ./ca.crt /certs
 
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 

@@ -13,26 +13,36 @@ make build
 ```
 
 
-## Trying it out:
+## Sample usage:
 
 Start docker-compose:
 
-```
-docker-compose up -d 
+```bash
+# Create self-signed certs for tls support
+make gencerts
+
+# Launch ldap, phpldamadmin and authproxy
+cd deployment/docker-compose
+docker-compose up
 ```
 
-login, receive a bearer token and validate the token against [localhost:6660/v1](https://localhost:6661/v1):
+Create a posix group "students" and a sample user foo with password bar at [localhost:8080](http://localhost:8080):
+
+* Login: cn=admin,dc=example,dc=org
+* Password: verysecret
+
+login, receive a bearer token and validate the token against [localhost:6660/v1](https://localhost:6660/v1):
 
 ```bash
-# login as user foo with password bar
-TOKEN=$(curl -X POST --user foo:bar --cacert ./cmd/ca.crt --key ./cmd/client.key --cert ./cmd/client.crt  https://localhost:6660/v1/login | jq -r '.Spec.Token')
+# login as user admin with password verysecret and receive a bearer token
+TOKEN=$(curl -X POST --user fbar:bar --cacert ../../certs/ca.crt --key ../../certs/client.key --cert ../../certs/client.crt  https://localhost:6660/v1/login | jq -r '.Spec.Token')
 
 # validate the bearer token
 curl \
   -X POST \
-  --cacert ./cmd/ca.crt \
-  --key ./cmd/client.key \
-  --cert ./cmd/client.crt \
+  --cacert ../../certs/ca.crt \
+  --key ../../certs/client.key \
+  --cert ../../certs/client.crt \
   --header 'Content-Type: application/json' \
   --header "Authorization: Bearer ${TOKEN}" \
   --data '{
@@ -42,7 +52,7 @@ curl \
       "token": "'"${TOKEN}"'"
     }
   }' \
-  https://localhost:6660/v1/authenticate
+  https://localhost:6660/v1/authenticate | jq .
 
 ```
 Result:
@@ -87,31 +97,25 @@ authproxy_authentication_login_attempts_total{status="success"} 1
    --ldap-allow-insecure=true
 ```
 
-***Docker usage***
-
-```
-docker run
-
-```
-
 ***authproxy-ldap configuration explained:***
 
 ```
 GLOBAL OPTIONS:
-   --http-addr value           The address the proxy runs on (default: ":6660") [$API_HTTP_ADDR]
-   --http-internal-addr value  The address authproxy runs a http server only for internal access (default: ":6661")
-   --tls-key value             The tls key file to be used
-   --tls-cert value            The tls cert file to be used
-   --tls-ca-cert value         The tls client ca file to be used
-   --log-json                  The logger will log json lines [$API_LOG_JSON]
-   --log-level value           The log level to filter logs with before printing (default: "info") [$API_LOG_LEVEL]
-   --ldap-addr value           The ldap server address to use as backend (default: ":7636")
-   --ldap-bind-dn value        The read-only user to be used for queries (default: "authuser")
-   --ldap-bind-pass value      The read-only user password to be used for queries (default: "secret")
-   --ldap-query-dn value       The query dn (default: ":7636")
-   --ldap-allow-insecure       Disable ldap tls encryption
-   --help, -h                  show help
-   --version, -v               print the version
+   --http-addr value              The address the proxy runs on (default: ":6660") [$PROXY_HTTP_ADDR]
+   --http-internal-addr value     The address authproxy runs a http server only for internal access (default: ":6661") [$PROXY_HTTP_PRIVATE_ADDR]
+   --tls-key value                The tls key file to be used [$PROXY_TLS_KEY]
+   --tls-cert value               The tls cert file to be used [$PROXY_TLS_CERT]
+   --tls-ca-cert value            The tls client ca file to be used [$PROXY_TLS_CA]
+   --log-json                     The logger will log json lines [$PROXY_LOG_JSON]
+   --log-level value              The log level to filter logs with before printing (default: "info") [$PROXY_LOG_LEVEL]
+   --ldap-addr value              The ldap server address to use as backend (default: ":7636") [$LDAP_HTTP_ADDR]
+   --ldap-bind-dn value           The read-only user to be used for queries (default: "authuser") [$LDAP_BIND_DN]
+   --ldap-bind-pass value         The read-only user password to be used for queries (default: "secret") [$LDAP_BIND_PW]
+   --ldap-query-dn value          The query dn (default: ":7636") [$LDAP_QUERY_DN]
+   --ldap-token-expiration value  The token expiration in minutes (default: 720) [$LDAP_TOKEN_EXPIRATION]
+   --ldap-allow-insecure          Disable ldap tls encryption [$LDAP_ALLOW_INSECURE]
+   --help, -h                     show help
+   --version, -v                  print the version
 ```
 ***Authproxy API Endpoints:***
 
