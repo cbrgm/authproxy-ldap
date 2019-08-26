@@ -3,7 +3,7 @@ module github.com/cbrgm/authproxy-ldap
 go 1.12
 
 require (
-	github.com/cbrgm/authproxy v0.0.0-20190808144822-ecbc0eb4d47b
+	github.com/cbrgm/authproxy v0.0.0-20190826114208-562050298d18
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ldap/ldap v3.0.3+incompatible
 	github.com/urfave/cli v1.21.0

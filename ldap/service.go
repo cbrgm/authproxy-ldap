@@ -21,6 +21,8 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	apiErrors "github.com/cbrgm/authproxy/api/errors"
+	"github.com/cbrgm/authproxy/api/v1/models"
 	"io/ioutil"
 
 	"github.com/go-ldap/ldap"
@@ -44,14 +46,14 @@ type LdapServiceConfig struct {
 
 // LdapService holds the connection to the LDAP server as well as a given transformer to process retrieved entries.
 type LdapService struct {
-	bindURL         string
-	bindDN          string
-	bindPassword    string
-	queryDN         string
-	selectors       []string
-	tlsConfig       *tls.Config
-	token           *TokenService
-	allowInsecure   bool
+	bindURL       string
+	bindDN        string
+	bindPassword  string
+	queryDN       string
+	selectors     []string
+	tlsConfig     *tls.Config
+	token         *TokenService
+	allowInsecure bool
 }
 
 // NewLdapService creates a new LdapService
@@ -142,56 +144,80 @@ func newTLSConfigFromArgs(tlsKey, tlsCert, tlsCA string) (*tls.Config, error) {
 }
 
 // Login a user with username and passwort with given ldap server and return a bearer token
-func (svc *LdapService) Login(username, password string) (string, bool, error) {
-
-	var authenticated bool
-	var bearerToken string
+func (svc *LdapService) Login(username, password string) (*models.TokenReviewRequest, error) {
 
 	conn, err := svc.connection()
 	if err != nil {
-		return bearerToken, authenticated, err
+		return nil, apiErrors.NewInternalError(err)
 	}
 
 	defer conn.Close()
 
 	entry, err := svc.searchForUser(conn, username)
 	if err != nil {
-		return bearerToken, false, nil
+		return nil, apiErrors.NewUnauthorized(fmt.Sprintf("failed to query user: %s", err))
 	}
 
 	// Bind as the user to verify their password
 	userDN := entry.DN
 	err = conn.Bind(userDN, password)
-	if err == nil {
-		authenticated = true
+	if err != nil {
+		return nil, apiErrors.NewUnauthorized("invalid user credentials")
 	}
 
-	if authenticated {
-		token, err := svc.token.createToken(UserDetails{
-			Username: username,
-			Assertions: map[string]string{
-				"issuer": svc.bindURL,
-				"userDN": userDN,
+	// create the token
+	bearerToken, err := svc.token.createToken(UserDetails{
+		Username: username,
+		Assertions: map[string]string{
+			"issuer": svc.bindURL,
+			"userDN": userDN,
+		},
+	})
+	if err != nil {
+		return nil, apiErrors.NewInternalError(err)
+	}
+
+	return &models.TokenReviewRequest{
+		APIVersion: "authentication.k8s.io/v1beta1",
+		Kind:       "TokenReview",
+		Status: &models.TokenReviewStatus{
+			// Required: let the client know if the user has successfully authenticated
+			Authenticated: true,
+
+			// optional: add user information for the client
+			User: &models.UserInfo{
+				Username: username,
+				Groups: []string{
+					userDN,
+				},
 			},
-		})
-		if err != nil {
-			return bearerToken, false, err
-		}
-		bearerToken = token
-	}
-
-	return bearerToken, authenticated, nil
+		},
+		// Required: return the token for the client
+		Spec: &models.TokenReviewSpec{
+			Token: bearerToken,
+		},
+	}, nil
 }
 
 // Authenticate authenticates a bearer token
 // returns user details extracted from the token
 // returns true if the token is valid, false if not
-func (svc *LdapService) Authenticate(bearerToken string) (UserDetails, bool) {
+func (svc *LdapService) Authenticate(bearerToken string) (*models.TokenReviewRequest, error) {
 	details, err := svc.token.verifyToken(bearerToken)
 	if err != nil {
-		return details, false
+		return nil, apiErrors.NewUnauthorized(fmt.Sprintf("failed to validate token: %s", err))
 	}
-	return details, true
+
+	return &models.TokenReviewRequest{
+		APIVersion: "authentication.k8s.io/v1beta1",
+		Kind:       "TokenReview",
+		Status: &models.TokenReviewStatus{
+			Authenticated: true,
+			User: &models.UserInfo{
+				Username: details.Username,
+			},
+		},
+	}, nil
 }
 
 // connection returns the bindURL ldap server

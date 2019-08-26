@@ -37,48 +37,10 @@ func NewLdapProvider(svc *ldap.LdapService) *LdapProvider {
 
 // Login implements login functionality for user foo and password bar
 func (provider *LdapProvider) Login(username, password string) (*models.TokenReviewRequest, error) {
-
-	token, authenticated, err := provider.Service.Login(username, password)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.TokenReviewRequest{
-		APIVersion: "authentication.k8s.io/v1beta1",
-		Kind:       "TokenReview",
-		Status: &models.TokenReviewStatus{
-			// Required: let the client know if the user has successfully authenticated
-			Authenticated: authenticated,
-
-			// optional: add user information for the client
-			User: &models.UserInfo{
-				Username: username,
-				Groups:   []string{},
-			},
-		},
-		// Required: return the token for the client
-		Spec: &models.TokenReviewSpec{
-			Token: token,
-		},
-	}, nil
+	return provider.Service.Login(username, password)
 }
 
 // Authenticate implements bearer token validation functionalities
 func (provider *LdapProvider) Authenticate(bearerToken string) (*models.TokenReviewRequest, error) {
-
-	details, authenticated := provider.Service.Authenticate(bearerToken)
-
-	return &models.TokenReviewRequest{
-		APIVersion: "authentication.k8s.io/v1beta1",
-		Kind:       "TokenReview",
-		// Required: let the client know that the token is valid or not
-		Status: &models.TokenReviewStatus{
-			Authenticated: authenticated,
-
-			// optional: add user information for the client
-			User: &models.UserInfo{
-				Username: details.Username,
-			},
-		},
-	}, nil
+	return provider.Service.Authenticate(bearerToken)
 }
