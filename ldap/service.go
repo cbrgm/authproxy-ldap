@@ -137,7 +137,7 @@ func newTLSConfigFromArgs(tlsKey, tlsCert, tlsCA string) (*tls.Config, error) {
 		return nil, errors.New("invalid config: failed to parse client CA")
 	}
 
-	tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	tlsConfig.ClientAuth = tls.RequestClientCert
 	tlsConfig.ClientCAs = cPool
 
 	return &tlsConfig, nil
@@ -214,6 +214,9 @@ func (svc *LdapService) Authenticate(bearerToken string) (*models.TokenReviewReq
 		Status: &models.TokenReviewStatus{
 			Authenticated: true,
 			User: &models.UserInfo{
+				Groups: []string{
+					details.Assertions["userDN"],
+				},
 				Username: details.Username,
 			},
 		},

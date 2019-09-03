@@ -13,6 +13,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLM
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/cbrgm/authproxy v0.0.0-20190826114208-562050298d18 h1:FHsOsqD0rQdtWoIGvzKUqWaHs03JXm5EyBJnB4Ur0Rc=
 github.com/cbrgm/authproxy v0.0.0-20190826114208-562050298d18/go.mod h1:fAIfYUg3Bk/jN3o7lHYYHp7kvVXqa0ayw2mPgVVP6Is=
+github.com/cbrgm/authproxy v1.0.1 h1:3CvqYUrsRrVXLlhoHc7Sr/D+3ttXS9actkTsFNzv1Xo=
+github.com/cbrgm/authproxy v1.0.1/go.mod h1:fAIfYUg3Bk/jN3o7lHYYHp7kvVXqa0ayw2mPgVVP6Is=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
