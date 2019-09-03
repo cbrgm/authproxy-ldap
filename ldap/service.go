@@ -23,9 +23,8 @@ import (
 	"fmt"
 	apiErrors "github.com/cbrgm/authproxy/api/errors"
 	"github.com/cbrgm/authproxy/api/v1/models"
-	"io/ioutil"
-
 	"github.com/go-ldap/ldap"
+	"io/ioutil"
 )
 
 // Entry is a synonyme to go-ldap/ldap Entry
@@ -124,7 +123,8 @@ func newTLSConfigFromArgs(tlsKey, tlsCert, tlsCA string) (*tls.Config, error) {
 
 	tlsConfig := tls.Config{
 		Certificates:             []tls.Certificate{cert},
-		MinVersion:               tls.VersionTLS12,
+		MinVersion:               tls.VersionTLS10,
+		InsecureSkipVerify:       true,
 		PreferServerCipherSuites: true,
 	}
 	// parse certificates from certificate authority file to a new CertPool.
