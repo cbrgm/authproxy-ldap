@@ -117,5 +117,5 @@ spec:
   ports:
     - name: https
       protocol: TCP
-      port: 80
+      port: 443
       targetPort: 6660
