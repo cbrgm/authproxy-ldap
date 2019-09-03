@@ -137,7 +137,6 @@ func newTLSConfigFromArgs(tlsKey, tlsCert, tlsCA string) (*tls.Config, error) {
 		return nil, errors.New("invalid config: failed to parse client CA")
 	}
 
-	tlsConfig.ClientAuth = tls.RequestClientCert
 	tlsConfig.ClientCAs = cPool
 
 	return &tlsConfig, nil

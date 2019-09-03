@@ -12,6 +12,71 @@
 make build
 ```
 
+## Docker / Podman
+
+```
+docker run --rm -it -p 6660:6660 -p 6661:6661 \
+     && -e PROXY_HTTP_ADDR: "0.0.0.0:6660" \
+     && -e PROXY_HTTP_PRIVATE_ADDR: "0.0.0.0:6661" \
+     && -e ROXY_TLS_CERT: "/certs/server.crt" \
+     && -e PROXY_TLS_KEY: "/certs/server.key" \
+     && -e PROXY_TLS_CA: "/certs/ca.crt" \
+     && -e LDAP_HTTP_ADDR: "openldap:389" \
+     && -e LDAP_BIND_DN: "cn=readonly,dc=example,dc=org" \
+     && -e LDAP_BIND_PW: "readonly" \
+     && -e LDAP_QUERY_DN: "cn=students,dc=example,dc=org" \
+     && -e LDAP_ALLOW_INSECURE=true: \
+     && -e LDAP_TOKEN_EXPIRATION: "720" # 12 hours \
+     && -e PROXY_LOG_JSON=false: \
+     && -e PROXY_LOG_LEVEL: "debug" \
+     && -v $(pwd)/certs:/certs \
+     cbrgm/authproxy-ldap:latest
+```
+
+
+## Standalone usage
+
+```
+./cmd/authproxy-ldap \
+   --tls-key ./cmd/server.key \
+   --tls-cert ./cmd/server.crt \
+   --tls-ca-cert ./cmd/ca.crt \
+   --log-level debug \
+   --ldap-addr localhost:389 \
+   --ldap-bind-dn "cn=readonly,dc=example,dc=org" \
+   --ldap-bind-pass readonly \
+   --ldap-query-dn "cn=students,dc=example,dc=org" \
+   --ldap-allow-insecure=true
+```
+
+## CLI Flags 
+
+```
+   --http-addr value              The address the proxy runs on (default: ":6660") [$PROXY_HTTP_ADDR]
+   --http-internal-addr value     The address authproxy runs a http server only for internal access (default: ":6661") [$PROXY_HTTP_PRIVATE_ADDR]
+   --tls-key value                The tls key file to be used [$PROXY_TLS_KEY]
+   --tls-cert value               The tls cert file to be used [$PROXY_TLS_CERT]
+   --tls-ca-cert value            The tls client ca file to be used [$PROXY_TLS_CA]
+   --log-json                     The logger will log json lines [$PROXY_LOG_JSON]
+   --log-level value              The log level to filter logs with before printing (default: "info") [$PROXY_LOG_LEVEL]
+   --ldap-addr value              The ldap server address to use as backend (default: ":7636") [$LDAP_HTTP_ADDR]
+   --ldap-bind-dn value           The read-only user to be used for queries (default: "authuser") [$LDAP_BIND_DN]
+   --ldap-bind-pass value         The read-only user password to be used for queries (default: "secret") [$LDAP_BIND_PW]
+   --ldap-query-dn value          The query dn (default: ":7636") [$LDAP_QUERY_DN]
+   --ldap-token-expiration value  The token expiration in minutes (default: 720) [$LDAP_TOKEN_EXPIRATION]
+   --ldap-allow-insecure          Disable ldap tls encryption [$LDAP_ALLOW_INSECURE]
+   --help, -h                     show help
+   --version, -v                  print the version
+```
+
+***Authproxy API Endpoints:***
+
+| Endpoints       | Type     | Description                                                            |
+|-----------------|----------|------------------------------------------------------------------------|
+| v1/login        | public   | Issues bearer tokens for clients                                       |
+| v1/authenticate | public   | Validates bearer tokens and provides authentication                    |
+| /metrics        | internal | Provides metrics to be observed by Prometheus                          |
+| /healthz         | internal | Indicates wether authproxy is healthy or not (for use with Kubernetes) |
 
 ## Sample usage:
 
@@ -80,52 +145,6 @@ also check out the Prometheus metrics endpoint [localhost:6661/metrics](localhos
 authproxy_authentication_login_attempts_total{status="failure"} 0
 authproxy_authentication_login_attempts_total{status="success"} 1
 ```
-
-## Standalone usage
-
-
-```
-./cmd/authproxy-ldap \
-   --tls-key ./cmd/server.key \
-   --tls-cert ./cmd/server.crt \
-   --tls-ca-cert ./cmd/ca.crt \
-   --log-level debug \
-   --ldap-addr localhost:389 \
-   --ldap-bind-dn "cn=readonly,dc=example,dc=org" \
-   --ldap-bind-pass readonly \
-   --ldap-query-dn "cn=students,dc=example,dc=org" \
-   --ldap-allow-insecure=true
-```
-
-***authproxy-ldap configuration explained:***
-
-```
-GLOBAL OPTIONS:
-   --http-addr value              The address the proxy runs on (default: ":6660") [$PROXY_HTTP_ADDR]
-   --http-internal-addr value     The address authproxy runs a http server only for internal access (default: ":6661") [$PROXY_HTTP_PRIVATE_ADDR]
-   --tls-key value                The tls key file to be used [$PROXY_TLS_KEY]
-   --tls-cert value               The tls cert file to be used [$PROXY_TLS_CERT]
-   --tls-ca-cert value            The tls client ca file to be used [$PROXY_TLS_CA]
-   --log-json                     The logger will log json lines [$PROXY_LOG_JSON]
-   --log-level value              The log level to filter logs with before printing (default: "info") [$PROXY_LOG_LEVEL]
-   --ldap-addr value              The ldap server address to use as backend (default: ":7636") [$LDAP_HTTP_ADDR]
-   --ldap-bind-dn value           The read-only user to be used for queries (default: "authuser") [$LDAP_BIND_DN]
-   --ldap-bind-pass value         The read-only user password to be used for queries (default: "secret") [$LDAP_BIND_PW]
-   --ldap-query-dn value          The query dn (default: ":7636") [$LDAP_QUERY_DN]
-   --ldap-token-expiration value  The token expiration in minutes (default: 720) [$LDAP_TOKEN_EXPIRATION]
-   --ldap-allow-insecure          Disable ldap tls encryption [$LDAP_ALLOW_INSECURE]
-   --help, -h                     show help
-   --version, -v                  print the version
-```
-***Authproxy API Endpoints:***
-
-| Endpoints       | Type     | Description                                                            |
-|-----------------|----------|------------------------------------------------------------------------|
-| v1/login        | public   | Issues bearer tokens for clients                                       |
-| v1/authenticate | public   | Validates bearer tokens and provides authentication                    |
-| /metrics        | internal | Provides metrics to be observed by Prometheus                          |
-| /healthz         | internal | Indicates wether authproxy is healthy or not (for use with Kubernetes) |
-
 
 ## Credit & License
 
