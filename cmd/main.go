@@ -40,6 +40,7 @@ const (
 	FlagBindURL         = "ldap-addr"
 	FlagBindDN          = "ldap-bind-dn"
 	FlagBindPassword    = "ldap-bind-pass"
+	FlagBaseDN          = "ldap-base-dn"
 	FlagQueryDN         = "ldap-query-dn"
 	FlagAllowInsecure   = "ldap-allow-insecure"
 	FlagTokenExpiration = "ldap-token-expiration"
@@ -57,6 +58,7 @@ const (
 	EnvBindDN          = "LDAP_BIND_DN"
 	EnvBindPassword    = "LDAP_BIND_PW"
 	EnvQueryDN         = "LDAP_QUERY_DN"
+	EnvBaseDN          = "LDAP_BASE_DN"
 	EnvAllowInsecure   = "LDAP_ALLOW_INSECURE"
 	EnvTokenExpiration = "LDAP_TOKEN_EXPIRATION"
 	EnvLogJSON         = "PROXY_LOG_JSON"
@@ -72,6 +74,7 @@ type apiConf struct {
 	BindURL         string
 	BindDN          string
 	BindPassword    string
+	BaseDN          string
 	QueryDN         string
 	AllowInsecure   bool
 	TokenExpiration int
@@ -150,10 +153,17 @@ var (
 			Destination: &apiConfig.BindPassword,
 		},
 		cli.StringFlag{
+			Name:        FlagBaseDN,
+			EnvVar:      EnvBaseDN,
+			Usage:       "The base dn",
+			Value:       "cn=students,dc=example,dc=org",
+			Destination: &apiConfig.BaseDN,
+		},
+		cli.StringFlag{
 			Name:        FlagQueryDN,
 			EnvVar:      EnvQueryDN,
 			Usage:       "The query dn",
-			Value:       "cn=students,dc=example,dc=org",
+			Value:       "uid",
 			Destination: &apiConfig.QueryDN,
 		},
 		cli.IntFlag{
@@ -191,6 +201,7 @@ func apiAction(c *cli.Context) error {
 		BindURL:         apiConfig.BindURL,
 		BindDN:          apiConfig.BindDN,
 		BindPassword:    apiConfig.BindPassword,
+		BaseDN:          apiConfig.BaseDN,
 		QueryDN:         apiConfig.QueryDN,
 		AllowInsecure:   apiConfig.AllowInsecure,
 		TLSCert:         apiConfig.TLSCert,

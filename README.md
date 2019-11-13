@@ -45,6 +45,7 @@ docker run --rm -it -p 6660:6660 -p 6661:6661 \
    --ldap-addr localhost:389 \
    --ldap-bind-dn "cn=readonly,dc=example,dc=org" \
    --ldap-bind-pass readonly \
+   --ldap-base-dn "ou=example" \
    --ldap-query-dn "cn=students,dc=example,dc=org" \
    --ldap-allow-insecure=true
 ```
@@ -62,7 +63,8 @@ docker run --rm -it -p 6660:6660 -p 6661:6661 \
    --ldap-addr value              The ldap server address to use as backend (default: ":7636") [$LDAP_HTTP_ADDR]
    --ldap-bind-dn value           The read-only user to be used for queries (default: "authuser") [$LDAP_BIND_DN]
    --ldap-bind-pass value         The read-only user password to be used for queries (default: "secret") [$LDAP_BIND_PW]
-   --ldap-query-dn value          The query dn (default: ":7636") [$LDAP_QUERY_DN]
+   --ldap-base-dn value           The base dn (subtree) to search for results [$LDAP_BASE_DN]
+   --ldap-query-dn value          The query dn [$LDAP_QUERY_DN]
    --ldap-token-expiration value  The token expiration in minutes (default: 720) [$LDAP_TOKEN_EXPIRATION]
    --ldap-allow-insecure          Disable ldap tls encryption [$LDAP_ALLOW_INSECURE]
    --help, -h                     show help
@@ -76,7 +78,7 @@ docker run --rm -it -p 6660:6660 -p 6661:6661 \
 | v1/login        | public   | Issues bearer tokens for clients                                       |
 | v1/authenticate | public   | Validates bearer tokens and provides authentication                    |
 | /metrics        | internal | Provides metrics to be observed by Prometheus                          |
-| /healthz         | internal | Indicates wether authproxy is healthy or not (for use with Kubernetes) |
+| /healthz        | internal | Indicates wether authproxy is healthy or not (for use with Kubernetes) |
 
 ## Sample usage:
 
