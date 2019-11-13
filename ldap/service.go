@@ -35,6 +35,7 @@ type LdapServiceConfig struct {
 	BindURL         string
 	BindDN          string
 	BindPassword    string
+	BaseDN          string
 	QueryDN         string
 	TLSKey          string
 	TLSCert         string
@@ -48,6 +49,7 @@ type LdapService struct {
 	bindURL       string
 	bindDN        string
 	bindPassword  string
+	baseDN        string
 	queryDN       string
 	selectors     []string
 	tlsConfig     *tls.Config
@@ -88,6 +90,7 @@ func NewLdapService(config LdapServiceConfig) (*LdapService, error) {
 		bindURL:       config.BindURL,
 		bindDN:        config.BindDN,
 		bindPassword:  config.BindPassword,
+		baseDN:        config.BaseDN,
 		queryDN:       config.QueryDN,
 		tlsConfig:     tlsConfig,
 		token:         tokenService,
@@ -256,13 +259,13 @@ func (svc *LdapService) searchForUser(conn *ldap.Conn, username string) (*ldap.E
 
 	// Search for the given username
 	searchRequest := ldap.NewSearchRequest(
-		svc.queryDN,
+		svc.baseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		2,
 		10,
 		false,
-		fmt.Sprintf("(&(objectClass=organizationalPerson)(uid=%s))", username),
+		fmt.Sprintf("(&(objectClass=organizationalPerson)(%s=%s))", svc.queryDN, username),
 		svc.selectors,
 		nil)
 
@@ -272,7 +275,7 @@ func (svc *LdapService) searchForUser(conn *ldap.Conn, username string) (*ldap.E
 	}
 
 	if len(sr.Entries) != 1 {
-		return nil, errors.New("user does not exists or there is more than one")
+		return nil, errors.New("user does not exists or there is more than one! Please check your queryDN")
 	}
 
 	return sr.Entries[0], nil
